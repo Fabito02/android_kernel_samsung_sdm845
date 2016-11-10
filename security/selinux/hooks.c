@@ -4625,12 +4625,7 @@ static void selinux_task_to_inode(struct task_struct *p,
 	struct inode_security_struct *isec = inode->i_security;
 	u32 sid = task_sid(p);
 
-#ifdef CONFIG_RKP_KDP
-	int rc;
-	if ((rc = security_integrity_current()))
-		return;
-#endif  /* CONFIG_RKP_KDP */
-
+	isec->sclass = inode_mode_to_security_class(inode->i_mode);
 	isec->sid = sid;
 	isec->initialized = LABEL_INITIALIZED;
 }
