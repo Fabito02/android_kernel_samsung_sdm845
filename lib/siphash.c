@@ -8,6 +8,7 @@
  * This implementation is specifically for SipHash2-4 for a secure PRF
  * and HalfSipHash1-3/SipHash1-3 for an insecure PRF only suitable for
  * hashtables.
+ * This implementation is specifically for SipHash2-4.
  */
 
 #include <linux/siphash.h>

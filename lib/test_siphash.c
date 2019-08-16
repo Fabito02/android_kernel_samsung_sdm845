@@ -10,6 +10,7 @@
  * This implementation is specifically for SipHash2-4 for a secure PRF
  * and HalfSipHash1-3/SipHash1-3 for an insecure PRF only suitable for
  * hashtables.
+ * This implementation is specifically for SipHash2-4.
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -22,6 +23,8 @@
 
 /* Test vectors taken from reference source available at:
  *     https://github.com/veorq/SipHash
+/* Test vectors taken from official reference source available at:
+ *     https://131002.net/siphash/siphash24.c
  */
 
 static const siphash_key_t test_key_siphash =
@@ -130,6 +133,7 @@ static int __init siphash_test_init(void)
 			pr_info("siphash self-test unaligned %u: FAIL\n", i + 1);
 			ret = -EINVAL;
 		}
+<<<<<<< HEAD
 		if (hsiphash(in, i, &test_key_hsiphash) !=
 						test_vectors_hsiphash[i]) {
 			pr_info("hsiphash self-test aligned %u: FAIL\n", i + 1);
@@ -140,6 +144,8 @@ static int __init siphash_test_init(void)
 			pr_info("hsiphash self-test unaligned %u: FAIL\n", i + 1);
 			ret = -EINVAL;
 		}
+=======
+>>>>>>> 53e054b3cd1b (siphash: add cryptographically secure PRF)
 	}
 	if (siphash_1u64(0x0706050403020100ULL, &test_key_siphash) !=
 						test_vectors_siphash[8]) {
@@ -185,6 +191,7 @@ static int __init siphash_test_init(void)
 		pr_info("siphash self-test 4u32: FAIL\n");
 		ret = -EINVAL;
 	}
+<<<<<<< HEAD
 	if (hsiphash_1u32(0x03020100U, &test_key_hsiphash) !=
 						test_vectors_hsiphash[4]) {
 		pr_info("hsiphash self-test 1u32: FAIL\n");
@@ -207,6 +214,8 @@ static int __init siphash_test_init(void)
 		pr_info("hsiphash self-test 4u32: FAIL\n");
 		ret = -EINVAL;
 	}
+=======
+>>>>>>> 53e054b3cd1b (siphash: add cryptographically secure PRF)
 	if (!ret)
 		pr_info("self-tests: pass\n");
 	return ret;
