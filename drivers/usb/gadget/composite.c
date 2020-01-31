@@ -574,18 +574,26 @@ done:
 EXPORT_SYMBOL(usb_func_ep_queue);
 
 static u8 encode_bMaxPower(enum usb_device_speed speed,
-		struct usb_configuration *c)
+                struct usb_configuration *c)
 {
-	unsigned int val = CONFIG_USB_GADGET_VBUS_DRAW;
+    unsigned int val;
 
-	switch (speed) {
-	case USB_SPEED_SUPER:
-		/* with super-speed report 900mA */
-		val = SSUSB_GADGET_VBUS_DRAW;
-		return (u8)(val / SSUSB_GADGET_VBUS_DRAW_UNITS);
-	default:
-		return DIV_ROUND_UP(val, HSUSB_GADGET_VBUS_DRAW_UNITS);
-	}
+    if (c->MaxPower)
+        val = c->MaxPower;
+    else
+        val = CONFIG_USB_GADGET_VBUS_DRAW;
+
+    if (!val)
+        return 0;
+
+    switch (speed) {
+    case USB_SPEED_SUPER:
+        /* with super-speed report 900mA */
+        val = SSUSB_GADGET_VBUS_DRAW;
+        return (u8)(val / SSUSB_GADGET_VBUS_DRAW_UNITS);
+    default:
+        return DIV_ROUND_UP(val, HSUSB_GADGET_VBUS_DRAW_UNITS);
+    }
 }
 
 static int config_buf(struct usb_configuration *config,
