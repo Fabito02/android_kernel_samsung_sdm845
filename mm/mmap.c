@@ -2127,6 +2127,7 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
 	info.low_limit = mm->mmap_base;
 	info.high_limit = TASK_SIZE;
 	info.align_mask = 0;
+	info.align_offset = 0;
 	addr = vm_unmapped_area(&info);
 	if (addr == -ENOMEM) {
 		if (__ratelimit(&mmap_rs)) {
@@ -2140,6 +2141,7 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
 		}
 	}
 	return addr;
+
 }
 #endif
 
@@ -2190,6 +2192,7 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
 	info.high_limit = mm->mmap_base;
 	info.align_mask = 0;
+	info.align_offset = 0;
 	addr = vm_unmapped_area(&info);
 
 	/*
