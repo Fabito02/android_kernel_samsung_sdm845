@@ -4378,9 +4378,6 @@ static inline int l2cap_disconnect_rsp(struct l2cap_conn *conn,
 	l2cap_chan_hold(chan);
 	l2cap_chan_lock(chan);
 
-<<<<<<< HEAD
-	l2cap_chan_hold(chan);
-=======
 	if (chan->state != BT_DISCONN) {
 		l2cap_chan_unlock(chan);
 		l2cap_chan_put(chan);
@@ -4388,7 +4385,6 @@ static inline int l2cap_disconnect_rsp(struct l2cap_conn *conn,
 		return 0;
 	}
 
->>>>>>> fea955d08fa5 (Bluetooth: Fix refcount use-after-free issue)
 	l2cap_chan_del(chan, 0);
 
 	chan->ops->close(chan);
