@@ -821,6 +821,7 @@ void __noreturn do_exit(long code)
 		 */
 		tsk->flags |= PF_EXITPIDONE;
 		futex_exit_done(tsk);
+		futex_exit_recursive(tsk);
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		schedule();
 	}
