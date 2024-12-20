@@ -214,26 +214,22 @@ static void complete_usage(struct hid_parser *parser, unsigned int index)
 
 static int hid_add_usage(struct hid_parser *parser, unsigned usage)
 {
-	if (parser->local.usage_index >= HID_MAX_USAGES) {
-		hid_err(parser->device, "usage index exceeded\n");
-		return -1;
-	}
-	parser->local.usage[parser->local.usage_index] = usage;
+    unsigned int size;
+    if (parser->local.usage_index >= HID_MAX_USAGES) {
+        hid_err(parser->device, "usage index exceeded\n");
+        return -1;
+    }
+    parser->local.usage[parser->local.usage_index] = usage;
 
+    /*
+     * If Usage item only includes usage id, concatenate it with
+     * currently defined usage page
+     */
+    if (size <= 2)
+        complete_usage(parser, parser->local.usage_index);
 
-	/*
-	 * If Usage item only includes usage id, concatenate it with
-	 * currently defined usage page
-	 */
-	if (size <= 2)
-		complete_usage(parser, parser->local.usage_index);
-
-	parser->local.usage_size[parser->local.usage_index] = size;
-	parser->local.collection_index[parser->local.usage_index] =
-		parser->collection_stack_ptr ?
-		parser->collection_stack[parser->collection_stack_ptr - 1] : 0;
-	parser->local.usage_index++;
-	return 0;
+    parser->local.usage_index++;
+    return 0;
 }
 
 /*
@@ -569,10 +565,6 @@ static void hid_concatenate_last_usage_page(struct hid_parser *parser)
      * has not been already used in previous usages concatenation
      */
     for (i = parser->local.usage_index - 1; i >= 0; i--) {
-        if (parser->local.usage_size[i] > 2)
-            /* Ignore extended usages */
-            continue;
-
         current_page = parser->local.usage[i] >> 16;
         if (current_page == usage_page)
             break;
