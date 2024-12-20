@@ -555,30 +555,30 @@ static int hid_parser_local(struct hid_parser *parser, struct hid_item *item)
 
 static void hid_concatenate_last_usage_page(struct hid_parser *parser)
 {
-	int i;
-	unsigned int usage_page;
-	unsigned int current_page;
+    int i;
+    unsigned int usage_page;
+    unsigned int current_page;
 
-	if (!parser->local.usage_index)
-		return;
+    if (!parser->local.usage_index)
+        return;
 
-	usage_page = parser->global.usage_page;
+    usage_page = parser->global.usage_page;
 
-	/*
-	 * Concatenate usage page again only if last declared Usage Page
-	 * has not been already used in previous usages concatenation
-	 */
-	for (i = parser->local.usage_index - 1; i >= 0; i--) {
-		if (parser->local.usage_size[i] > 2)
-			/* Ignore extended usages */
-			continue;
+    /*
+     * Concatenate usage page again only if last declared Usage Page
+     * has not been already used in previous usages concatenation
+     */
+    for (i = parser->local.usage_index - 1; i >= 0; i--) {
+        if (parser->local.usage_size[i] > 2)
+            /* Ignore extended usages */
+            continue;
 
-		current_page = parser->local.usage[i] >> 16;
-		if (current_page == usage_page)
-			break;
+        current_page = parser->local.usage[i] >> 16;
+        if (current_page == usage_page)
+            break;
 
-		complete_usage(parser, i);
-	}
+        complete_usage(parser, i);
+    }
 }
 
 /*
