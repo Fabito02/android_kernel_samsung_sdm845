@@ -1318,28 +1318,6 @@ static int dwc3_probe(struct platform_device *pdev)
 	pm_runtime_enable(dev);
 	pm_runtime_forbid(dev);
 
-	ret = dwc3_alloc_event_buffers(dwc, DWC3_EVENT_BUFFERS_SIZE);
-	if (ret) {
-		dev_err(dwc->dev, "failed to allocate event buffers\n");
-		ret = -ENOMEM;
-		goto err2;
-	}
-
-	ret = dwc3_get_dr_mode(dwc);
-	if (ret)
-		goto err3;
-
-	ret = dwc3_alloc_scratch_buffers(dwc);
-	if (ret)
-		goto err3;
-
-	ret = dwc3_core_init(dwc);
-	if (ret) {
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "failed to initialize core: %d\n", ret);
-		goto err4;
-	}
-
 	/* Check the maximum_speed parameter */
 	switch (dwc->maximum_speed) {
 	case USB_SPEED_LOW:
@@ -1398,19 +1376,10 @@ static int dwc3_probe(struct platform_device *pdev)
 	return 0;
 
 err_core_init:
-    dwc3_core_exit_mode(dwc);
+	dwc3_core_exit_mode(dwc);
 
 err1:
-    destroy_workqueue(dwc->dwc_wq);
-err2:
-    dwc3_free_event_buffers(dwc);
-err3:
-    dwc3_free_scratch_buffers(dwc);
-err4:
-    usb_phy_shutdown(dwc->usb2_phy);
-    usb_phy_shutdown(dwc->usb3_phy);
-    phy_exit(dwc->usb2_generic_phy);
-    phy_exit(dwc->usb3_generic_phy);
+	destroy_workqueue(dwc->dwc_wq);
 err0:
 	/*
 	 * restore res->start back to its original value so that, in case the
