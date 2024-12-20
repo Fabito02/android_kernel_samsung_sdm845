@@ -1398,10 +1398,19 @@ static int dwc3_probe(struct platform_device *pdev)
 	return 0;
 
 err_core_init:
-	dwc3_core_exit_mode(dwc);
+    dwc3_core_exit_mode(dwc);
 
 err1:
-	destroy_workqueue(dwc->dwc_wq);
+    destroy_workqueue(dwc->dwc_wq);
+err2:
+    dwc3_free_event_buffers(dwc);
+err3:
+    dwc3_free_scratch_buffers(dwc);
+err4:
+    usb_phy_shutdown(dwc->usb2_phy);
+    usb_phy_shutdown(dwc->usb3_phy);
+    phy_exit(dwc->usb2_generic_phy);
+    phy_exit(dwc->usb3_generic_phy);
 err0:
 	/*
 	 * restore res->start back to its original value so that, in case the
