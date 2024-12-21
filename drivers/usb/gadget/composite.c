@@ -574,26 +574,18 @@ done:
 EXPORT_SYMBOL(usb_func_ep_queue);
 
 static u8 encode_bMaxPower(enum usb_device_speed speed,
-                struct usb_configuration *c)
+		struct usb_configuration *c)
 {
-    unsigned int val;
+	unsigned int val = CONFIG_USB_GADGET_VBUS_DRAW;
 
-    if (c->MaxPower)
-        val = c->MaxPower;
-    else
-        val = CONFIG_USB_GADGET_VBUS_DRAW;
-
-    if (!val)
-        return 0;
-
-    switch (speed) {
-    case USB_SPEED_SUPER:
-        /* with super-speed report 900mA */
-        val = SSUSB_GADGET_VBUS_DRAW;
-        return (u8)(val / SSUSB_GADGET_VBUS_DRAW_UNITS);
-    default:
-        return DIV_ROUND_UP(val, HSUSB_GADGET_VBUS_DRAW_UNITS);
-    }
+	switch (speed) {
+	case USB_SPEED_SUPER:
+		/* with super-speed report 900mA */
+		val = SSUSB_GADGET_VBUS_DRAW;
+		return (u8)(val / SSUSB_GADGET_VBUS_DRAW_UNITS);
+	default:
+		return DIV_ROUND_UP(val, HSUSB_GADGET_VBUS_DRAW_UNITS);
+	}
 }
 
 static int config_buf(struct usb_configuration *config,
@@ -1046,16 +1038,7 @@ static int set_config(struct usb_composite_dev *cdev,
 	}
 
 done:
-
 	usb_gadget_vbus_draw(gadget, USB_VBUS_DRAW(gadget->speed));
-
-	if (power <= USB_SELF_POWER_VBUS_MAX_DRAW)
-		usb_gadget_set_selfpowered(gadget);
-	else
-		usb_gadget_clear_selfpowered(gadget);
-
-	usb_gadget_vbus_draw(gadget, power);
-
 	if (result >= 0 && cdev->delayed_status)
 		result = USB_GADGET_DELAYED_STATUS;
 	return result;
@@ -2597,7 +2580,6 @@ void composite_suspend(struct usb_gadget *gadget)
 	cdev->suspended = 1;
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
-	usb_gadget_set_selfpowered(gadget);
 	usb_gadget_vbus_draw(gadget, 2);
 }
 
@@ -2646,18 +2628,6 @@ void composite_resume(struct usb_gadget *gadget)
 		}
 
 		usb_gadget_vbus_draw(gadget, USB_VBUS_DRAW(gadget->speed));
-
-		maxpower = cdev->config->MaxPower ?
-			cdev->config->MaxPower : CONFIG_USB_GADGET_VBUS_DRAW;
-		if (gadget->speed < USB_SPEED_SUPER)
-			maxpower = min(maxpower, 500U);
-		else
-			maxpower = min(maxpower, 900U);
-
-		if (maxpower > USB_SELF_POWER_VBUS_MAX_DRAW)
-			usb_gadget_clear_selfpowered(gadget);
-
-		usb_gadget_vbus_draw(gadget, maxpower);
 	}
 
 	spin_unlock_irqrestore(&cdev->lock, flags);
