@@ -4782,13 +4782,9 @@ struct inode *__ext4_iget(struct super_block *sb, unsigned long ino,
 	ret = 0;
 	if (ei->i_file_acl &&
 	    !ext4_data_block_valid(EXT4_SB(sb), ei->i_file_acl, 1)) {
-<<<<<<< HEAD
 		print_iloc_info(sb, iloc);
-		EXT4_ERROR_INODE(inode, "bad extended attribute block %llu",
-=======
 		ext4_error_inode(inode, function, line, 0,
 				 "iget: bad extended attribute block %llu",
->>>>>>> 553f7c0b91ae (ext4: avoid declaring fs inconsistent due to invalid file handles)
 				 ei->i_file_acl);
 		ret = -EFSCORRUPTED;
 		goto bad_inode;
@@ -4845,13 +4841,10 @@ struct inode *__ext4_iget(struct super_block *sb, unsigned long ino,
 		make_bad_inode(inode);
 	} else {
 		ret = -EFSCORRUPTED;
-<<<<<<< HEAD
 		print_iloc_info(sb, iloc);
-		EXT4_ERROR_INODE(inode, "bogus i_mode (%o)", inode->i_mode);
-=======
+
 		ext4_error_inode(inode, function, line, 0,
 				 "iget: bogus i_mode (%o)", inode->i_mode);
->>>>>>> 553f7c0b91ae (ext4: avoid declaring fs inconsistent due to invalid file handles)
 		goto bad_inode;
 	}
 	brelse(iloc.bh);
