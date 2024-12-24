@@ -527,8 +527,7 @@ struct ion_handle *ion_handle_get_by_id_nolock(struct ion_client *client,
 	return ERR_PTR(-EINVAL);
 }
 
-bool ion_handle_validate(struct ion_client *client,
-			 struct ion_handle *handle)
+bool ion_handle_validate(struct ion_client *client, struct ion_handle *handle)
 {
 	WARN_ON(!mutex_is_locked(&client->lock));
 	return idr_find(&client->idr, handle->id) == handle;
@@ -586,9 +585,10 @@ static size_t ion_buffer_get_total_size_by_pid(struct ion_client *client)
 	return pid_total_size;
 }
 
-struct ion_handle *__ion_alloc(struct ion_client *client, size_t len,
-			       size_t align, unsigned int heap_id_mask,
-			       unsigned int flags, bool grab_handle)
+static struct ion_handle *__ion_alloc(
+		struct ion_client *client, size_t len,
+		size_t align, unsigned int heap_id_mask,
+		unsigned int flags, bool grab_handle)
 {
 	struct ion_handle *handle;
 	struct ion_device *dev = client->dev;
@@ -723,7 +723,7 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
 		       __func__, len, align, heap_id_mask, flags,
 		       PTR_ERR(handle));
 	}
-	return __ion_alloc(client, len, align, heap_id_mask, flags, false);
+	return handle;
 }
 EXPORT_SYMBOL(ion_alloc);
 
