@@ -1507,13 +1507,12 @@ static int drbg_generate_long(struct drbg_state *drbg,
 	return 0;
 }
 
-static int drbg_schedule_async_seed(struct notifier_block *nb, unsigned long action, void *data)
+static void drbg_schedule_async_seed(struct random_ready_callback *rdy)
 {
-	struct drbg_state *drbg = container_of(nb, struct drbg_state,
+	struct drbg_state *drbg = container_of(rdy, struct drbg_state,
 					       random_ready);
 
 	schedule_work(&drbg->seed_work);
-	return 0;
 }
 
 static int drbg_prepare_hrng(struct drbg_state *drbg)
@@ -1526,8 +1525,10 @@ static int drbg_prepare_hrng(struct drbg_state *drbg)
 
 	INIT_WORK(&drbg->seed_work, drbg_async_seed);
 
-	drbg->random_ready.notifier_call = drbg_schedule_async_seed;
-	err = register_random_ready_notifier(&drbg->random_ready);
+	drbg->random_ready.owner = THIS_MODULE;
+	drbg->random_ready.func = drbg_schedule_async_seed;
+
+	err = add_random_ready_callback(&drbg->random_ready);
 
 	switch (err) {
 	case 0:
@@ -1538,7 +1539,7 @@ static int drbg_prepare_hrng(struct drbg_state *drbg)
 		/* fall through */
 
 	default:
-		drbg->random_ready.notifier_call = NULL;
+		drbg->random_ready.func = NULL;
 		return err;
 	}
 
@@ -1647,14 +1648,12 @@ free_everything:
  */
 static int drbg_uninstantiate(struct drbg_state *drbg)
 {
-	if (drbg->random_ready.notifier_call) {
-		unregister_random_ready_notifier(&drbg->random_ready);
+	if (drbg->random_ready.func) {
+		del_random_ready_callback(&drbg->random_ready);
 		cancel_work_sync(&drbg->seed_work);
-	}
-
-	if (!IS_ERR_OR_NULL(drbg->jent))
 		crypto_free_rng(drbg->jent);
-	drbg->jent = NULL;
+		drbg->jent = NULL;
+	}
 
 	if (drbg->d_ops)
 		drbg->d_ops->crypto_fini(drbg);
