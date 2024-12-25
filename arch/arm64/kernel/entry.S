@@ -80,35 +80,26 @@
 
 	.macro kernel_ventry, el, label, regsize = 64
 	.align 7
-.Lventry_start\@:
 #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
+alternative_if ARM64_UNMAP_KERNEL_AT_EL0
 	.if	\el == 0
-	/*
-	 * This must be the first instruction of the EL0 vector entries. It is
-	 * skipped by the trampoline vectors, to trigger the cleanup.
-	 */
-	b	.Lskip_tramp_vectors_cleanup\@
 	.if	\regsize == 64
 	mrs	x30, tpidrro_el0
 	msr	tpidrro_el0, xzr
 	.else
 	mov	x30, xzr
 	.endif
-.Lskip_tramp_vectors_cleanup\@:
 	.endif
+alternative_else_nop_endif
 #endif
 
 	sub	sp, sp, #S_FRAME_SIZE
 	b	el\()\el\()_\label
-.org .Lventry_start\@ + 128	// Did we overflow the ventry slot?
 	.endm
 
-	.macro tramp_alias, dst, sym, tmp
+	.macro tramp_alias, dst, sym
 	mov_q	\dst, TRAMP_VALIAS
-	adr_l	\tmp, \sym
-	add	\dst, \dst, \tmp
-	adr_l	\tmp, .entry.tramp.text
-	sub	\dst, \dst, \tmp
+	add	\dst, \dst, #(\sym - .entry.tramp.text)
 	.endm
 
 	// This macro corrupts x0-x3. It is the caller's duty
@@ -331,25 +322,21 @@ alternative_else_nop_endif
 	ldp	x24, x25, [sp, #16 * 12]
 	ldp	x26, x27, [sp, #16 * 13]
 	ldp	x28, x29, [sp, #16 * 14]
-
-	.if	\el == 0
-alternative_if_not ARM64_UNMAP_KERNEL_AT_EL0
 	ldr	lr, [sp, #S_LR]
 	add	sp, sp, #S_FRAME_SIZE		// restore sp
-	eret
-alternative_else_nop_endif
+
+	.if	\el == 0
+alternative_insn eret, nop, ARM64_UNMAP_KERNEL_AT_EL0
 #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
 	bne	4f
-	msr	far_el1, x29
-	tramp_alias	x30, tramp_exit_native, x29
+	msr	far_el1, x30
+	tramp_alias	x30, tramp_exit_native
 	br	x30
 4:
-	tramp_alias	x30, tramp_exit_compat, x29
+	tramp_alias	x30, tramp_exit_compat
 	br	x30
 #endif
 	.else
-	ldr	lr, [sp, #S_LR]
-	add	sp, sp, #S_FRAME_SIZE		// restore sp
 	eret
 	.endif
 	.endm
@@ -1090,8 +1077,6 @@ __ni_sys_trace:
 	.if	\regsize == 64
 	msr	tpidrro_el0, x30	// Restored in kernel_ventry
 	.endif
-
-	.if	\kpti == 1
 	/*
 	 * Defend against branch aliasing attacks by pushing a dummy
 	 * entry onto the return stack and using a RET instruction to
@@ -1112,21 +1097,18 @@ __ni_sys_trace:
 #endif
 	prfm	plil1strm, [x30, #(1b - tramp_vectors)]
 	msr	vbar_el1, x30
-	add	x30, x30, #(1b - tramp_vectors + 4)
+	add	x30, x30, #(1b - tramp_vectors)
 	isb
 	ret
-.org 1b + 128	// Did we overflow the ventry slot?
 	.endm
 
 	.macro tramp_exit, regsize = 64
 	adr	x30, tramp_vectors
 	msr	vbar_el1, x30
-	ldr	lr, [sp, #S_LR]
-	tramp_unmap_kernel	x29
+	tramp_unmap_kernel	x30
 	.if	\regsize == 64
-	mrs	x29, far_el1
+	mrs	x30, far_el1
 	.endif
-	add	sp, sp, #S_FRAME_SIZE		// restore sp
 	eret
 	.endm
 
@@ -1168,37 +1150,6 @@ __entry_tramp_data_start:
 	.popsection				// .rodata
 #endif /* CONFIG_RANDOMIZE_BASE */
 #endif /* CONFIG_UNMAP_KERNEL_AT_EL0 */
-
-/*
- * Exception vectors for spectre mitigations on entry from EL1 when
- * kpti is not in use.
- */
-	.macro generate_el1_vector
-.Lvector_start\@:
-	kernel_ventry	1, sync_invalid			// Synchronous EL1t
-	kernel_ventry	1, irq_invalid			// IRQ EL1t
-	kernel_ventry	1, fiq_invalid			// FIQ EL1t
-	kernel_ventry	1, error_invalid		// Error EL1t
-
-	kernel_ventry	1, sync				// Synchronous EL1h
-	kernel_ventry	1, irq				// IRQ EL1h
-	kernel_ventry	1, fiq_invalid			// FIQ EL1h
-	kernel_ventry	1, error_invalid		// Error EL1h
-
-	.rept	4
-	tramp_ventry	.Lvector_start\@, 64, kpti=0
-	.endr
-	.rept 4
-	tramp_ventry	.Lvector_start\@, 32, kpti=0
-	.endr
-	.endm
-
-	.pushsection ".entry.text", "ax"
-	.align	11
-ENTRY(__bp_harden_el1_vectors)
-	generate_el1_vector
-END(__bp_harden_el1_vectors)
-	.popsection
 
 /*
  * Special system call wrappers.
