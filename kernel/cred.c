@@ -260,6 +260,7 @@ struct cred *prepare_creds(void)
 	old = task->cred;
 	memcpy(new, old, sizeof(struct cred));
 
+	new->non_rcu = 0;
 	atomic_set(&new->usage, 1);
 	set_cred_subscribers(new, 0);
 	get_group_info(new->group_info);
@@ -539,12 +540,6 @@ const struct cred *override_creds(const struct cred *new)
 
 	validate_creds(old);
 	validate_creds(new);
-#ifdef CONFIG_RKP_KDP
-	if(rkp_cred_enable) {
-		cred_param_t cred_param;
-		new_ro = kmem_cache_alloc(cred_jar_ro, GFP_KERNEL);
-		if (!new_ro)
-			panic("override_creds(): kmem_cache_alloc() failed");
 
 	/*
 	 * NOTE! This uses 'get_new_cred()' rather than 'get_cred()'.
@@ -640,6 +635,7 @@ struct cred *prepare_kernel_cred(struct task_struct *daemon)
 	validate_creds(old);
 
 	*new = *old;
+	new->non_rcu = 0;
 	atomic_set(&new->usage, 1);
 	set_cred_subscribers(new, 0);
 	get_uid(new->user);

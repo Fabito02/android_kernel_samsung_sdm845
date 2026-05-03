@@ -8,7 +8,7 @@
 VARIANT = android
 
 # Kernel base version
-KERNEL_BASE_VERSION = 4.9.186
+KERNEL_BASE_VERSION = 4.9.337
 
 # The kernel cmdline to use
 KERNEL_BOOTIMAGE_CMDLINE = androidboot.hardware=qcom video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 service_locator.enable=1 swiotlb=2048 androidboot.configfs=true androidboot.usbcontroller=a600000.dwc3 firmware_class.path=/vendor/firmware_mnt/image/ loop.max_part=7 androidboot.selinux=permissive buildvariant=userdebug console=tty0 selinux=0 apparmor=1 security=apparmor droidian.lvm.prefer
@@ -18,13 +18,13 @@ KERNEL_BOOTIMAGE_CMDLINE = androidboot.hardware=qcom video=vfb:640x400,bpp=32,me
 DEVICE_VENDOR = samsung
 
 # Slug for the device model. Like above.
-DEVICE_MODEL = starqlte
+DEVICE_MODEL = star2qlte
 
 # Slug for the device platform. If unsure, keep this commented.
 #DEVICE_PLATFORM = platform
 
 # Marketing-friendly full-name. This will be used inside package descriptions
-DEVICE_FULL_NAME = Samsung Galaxy S9
+DEVICE_FULL_NAME = Samsung Galaxy S9+
 
 # Whether to use configuration fragments to augment the kernel configuration.
 # If unsure, keep this to 0.
@@ -40,7 +40,7 @@ KERNEL_CONFIG_USE_DIFFCONFIG = 0
 #KERNEL_PRODUCT_DIFFCONFIG = my_diffconfig
 
 # Defconfig to use
-KERNEL_DEFCONFIG = starqlte_usa_halium_defconfig
+KERNEL_DEFCONFIG = star2qlte_chn_halium_defconfig
 
 # Whether to include DTBs with the image. Use 0 (no) or 1.
 KERNEL_IMAGE_WITH_DTB = 0
@@ -135,7 +135,7 @@ FLASH_INFO_MANUFACTURER = Samsung
 # Device model. This must match the `ro.product.vendor.model`
 # Android property. If you don't want to specify this, leave it undefined,
 # FLASH_INFO_CPU will be checked instead.
-FLASH_INFO_MODEL = Galaxy S9
+FLASH_INFO_MODEL = Galaxy S9+
 
 # Device CPU. This will be grepped against /proc/cpuinfo to check if
 # we're running on the specific device. Note this is a last-resort
@@ -144,7 +144,7 @@ FLASH_INFO_MODEL = Galaxy S9
 FLASH_INFO_CPU = SDM845
 
 # Space-separated list of supported device ids as reported by fastboot
-FLASH_INFO_DEVICE_IDS = starqlte starqltesq starqltechn starqlteue
+FLASH_INFO_DEVICE_IDS = star2qlte star2qltesq star2qltechn star2qlteue
 
 ########################################################################
 # Kernel build settings
@@ -155,14 +155,14 @@ BUILD_CROSS = 1
 
 # (Cross-build only) The build triplet to use. You'll probably want to
 # use aarch64-linux-android- if building Android kernels.
-BUILD_TRIPLET = aarch64-linux-android-
+BUILD_TRIPLET = aarch64-linux-gnu-
 
 # (Cross-build only) The build triplet to use with clang. You'll probably
 # want to use aarch64-linux-gnu- here.
 BUILD_CLANG_TRIPLET = aarch64-linux-gnu-
 
 # The compiler to use. Recent Android kernels are built with clang.
-BUILD_CC = aarch64-linux-android-gcc-4.9
+BUILD_CC = aarch64-linux-gnu-gcc
 
 # Extra paths to prepend to the PATH variable. You'll probably want
 # to specify the clang path here (the default).
@@ -171,7 +171,7 @@ BUILD_PATH = /usr/lib/llvm-android-6.0-4691093/bin
 # Extra packages to add to the Build-Depends section. Mainline builds
 # can have this section empty, unless cross-building.
 # The default is enough to install the Android toolchain, including clang.
-DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-6.0-4691093, gcc-4.9-aarch64-linux-android, g++-4.9-aarch64-linux-android, libgcc-4.9-dev-aarch64-linux-android-cross
+DEB_TOOLCHAIN = linux-initramfs-halium-generic:arm64, binutils-aarch64-linux-gnu, clang-android-6.0-4691093, gcc-aarch64-linux-gnu, g++-aarch64-linux-gnu
 
 # Where we're building on
 DEB_BUILD_ON = amd64

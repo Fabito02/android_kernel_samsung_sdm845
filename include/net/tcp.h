@@ -1557,6 +1557,11 @@ bool tcp_fastopen_cookie_check(struct sock *sk, u16 *mss,
 bool tcp_fastopen_defer_connect(struct sock *sk, int *err);
 #define TCP_FASTOPEN_KEY_LENGTH 16
 
+static inline void tcp_init_send_head(struct sock *sk)
+{
+	sk->sk_send_head = NULL;
+}
+
 /* Fastopen key context */
 struct tcp_fastopen_context {
 	struct crypto_cipher	*tfm;
@@ -1576,6 +1581,7 @@ static inline void tcp_write_queue_purge(struct sock *sk)
 	tcp_init_send_head(sk);
 	sk_mem_reclaim(sk);
 	tcp_clear_all_retrans_hints(tcp_sk(sk));
+	tcp_init_send_head(sk);
 	inet_csk(sk)->icsk_backoff = 0;
 }
 
